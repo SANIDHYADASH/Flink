@@ -58,6 +58,22 @@ const AccessPage: React.FC = () => {
     }
   };
 
+  // Handle Enter key press for access code input
+  const handleAccessCodeKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearchShare();
+    }
+  };
+
+  // Handle Enter key press for password input
+  const handlePasswordKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handlePasswordSubmit(e as any);
+    }
+  };
+
   // Handle password submission
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,6 +170,8 @@ const AccessPage: React.FC = () => {
                   const value = e.target.value.replace(/[^0-9]/g, '');
                   setAccessCode(value);
                 }}
+                onKeyPress={handleAccessCodeKeyPress}
+                autoFocus
               />
               <button
                 type="button"
@@ -165,6 +183,9 @@ const AccessPage: React.FC = () => {
                 {!isLoading && <Search className="ml-2 h-4 w-4" />}
               </button>
             </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Press Enter to search for the access code
+            </p>
           </div>
         </motion.div>
       )}
@@ -207,8 +228,13 @@ const AccessPage: React.FC = () => {
                   className="input"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onKeyPress={handlePasswordKeyPress}
                   placeholder="Enter password"
+                  autoFocus
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Press Enter to unlock content
+                </p>
               </div>
               
               <div className="flex justify-between">
@@ -253,7 +279,7 @@ const AccessPage: React.FC = () => {
                   <File className="h-6 w-6 text-primary-600 mr-2" />
                 )}
                 <h2 className="text-lg font-medium text-gray-900">
-                  {share.name}
+                  {share.title || share.name}
                 </h2>
               </div>
               
@@ -272,13 +298,16 @@ const AccessPage: React.FC = () => {
             </div>
             
             {share.type === 'text' ? (
-              <div className="bg-gray-50 p-4 rounded-md mb-4 whitespace-pre-wrap">
-                {share.content}
+              <div className="bg-gray-50 p-4 rounded-md mb-4">
+                <div 
+                  className="prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: share.content }}
+                />
               </div>
             ) : (
               <div className="bg-gray-50 p-4 rounded-md mb-4 text-center">
                 <File className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-900 font-medium">{share.name}</p>
+                <p className="text-gray-900 font-medium">{share.title || share.name}</p>
                 <p className="text-gray-500 text-sm">
                   {share.fileType || 'File'} • {formatFileSize(share.size || 0)}
                 </p>

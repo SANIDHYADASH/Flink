@@ -10,6 +10,7 @@ export interface ShareItem {
   userId: string;
   type: 'file' | 'text';
   name: string;
+  title?: string;
   content: string;
   fileType?: string;
   size?: number;
@@ -27,7 +28,8 @@ interface ShareContextType {
   loading: boolean;
   getShareByCode: (code: string) => ShareItem | null;
   createTextShare: (text: string, name: string, expiresInDays: number, password?: string) => Promise<ShareItem>;
-  createFileShare: (file: File, expiresInDays: number, password?: string) => Promise<ShareItem>;
+  createFileShare: (file: File, expiresInDays: number, password?: string, title?: string) => Promise<ShareItem>;
+  updateShare: (id: string, updatedData: Partial<ShareItem>) => Promise<ShareItem>;
   verifySharePassword: (share: ShareItem, password: string) => boolean;
   deleteShare: (id: string) => void;
   incrementDownload: (id: string) => void;
@@ -48,6 +50,7 @@ const ShareContext = createContext<ShareContextType>({
   getShareByCode: () => null,
   createTextShare: async () => ({} as ShareItem),
   createFileShare: async () => ({} as ShareItem),
+  updateShare: async () => ({} as ShareItem),
   verifySharePassword: () => false,
   deleteShare: () => {},
   incrementDownload: () => {},
@@ -91,6 +94,7 @@ export const ShareProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Check if a share is expired
   const isExpired = (share: ShareItem): boolean => {
+    if (share.expiresAt === 'never') return false;
     return isAfter(new Date(), new Date(share.expiresAt));
   };
 
@@ -128,7 +132,7 @@ export const ShareProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       accessCode,
       hasPassword,
       password: hasPassword ? password : undefined,
-      expiresAt: addDays(new Date(), expiresInDays).toISOString(),
+      expiresAt: expiresInDays === -1 ? 'never' : addDays(new Date(), expiresInDays).toISOString(),
       createdAt: new Date().toISOString(),
       downloadCount: 0,
     };
@@ -141,7 +145,8 @@ export const ShareProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const createFileShare = async (
     file: File, 
     expiresInDays: number, 
-    password?: string
+    password?: string,
+    title?: string
   ): Promise<ShareItem> => {
     if (!user) throw new Error('User must be logged in');
 
@@ -166,19 +171,38 @@ export const ShareProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       userId: user.id,
       type: 'file',
       name: file.name,
+      title: title || file.name,
       content: fileContent,
       fileType: file.type,
       size: file.size,
       accessCode,
       hasPassword,
       password: hasPassword ? password : undefined,
-      expiresAt: addDays(new Date(), expiresInDays).toISOString(),
+      expiresAt: expiresInDays === -1 ? 'never' : addDays(new Date(), expiresInDays).toISOString(),
       createdAt: new Date().toISOString(),
       downloadCount: 0,
     };
 
     setShares(prev => [...prev, newShare]);
     return newShare;
+  };
+
+  // Update a share
+  const updateShare = async (id: string, updatedData: Partial<ShareItem>): Promise<ShareItem> => {
+    if (!user) throw new Error('User must be logged in');
+
+    setShares(prev => 
+      prev.map(share => 
+        share.id === id && share.userId === user.id
+          ? { ...share, ...updatedData }
+          : share
+      )
+    );
+
+    const updatedShare = shares.find(s => s.id === id);
+    if (!updatedShare) throw new Error('Share not found');
+    
+    return { ...updatedShare, ...updatedData };
   };
 
   // Verify a share's password
@@ -210,6 +234,7 @@ export const ShareProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     getShareByCode,
     createTextShare,
     createFileShare,
+    updateShare,
     verifySharePassword,
     deleteShare,
     incrementDownload,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FileText, Upload, Edit2 } from 'lucide-react';
 import { useShare } from '../contexts/ShareContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,6 +20,45 @@ const DashboardPage: React.FC = () => {
 	const [editShare, setEditShare] = useState<any>(null);
 	const [addType, setAddType] = useState<'file' | 'text' | null>(null);
 	const [detailShare, setDetailShare] = useState<any>(null);
+	
+	const modalRef = useRef<HTMLDivElement>(null);
+	const detailModalRef = useRef<HTMLDivElement>(null);
+
+	// Handle click outside modal to close
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+				setShowAddModal(false);
+				setEditShare(null);
+				setAddType(null);
+			}
+		};
+
+		if (showAddModal) {
+			document.addEventListener('mousedown', handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [showAddModal]);
+
+	// Handle click outside detail modal to close
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (detailModalRef.current && !detailModalRef.current.contains(event.target as Node)) {
+				setDetailShare(null);
+			}
+		};
+
+		if (detailShare) {
+			document.addEventListener('mousedown', handleClickOutside);
+		}
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [detailShare]);
 
 	// Filtered shares based on tab and search
 	const filteredShares = userShares
@@ -162,8 +201,8 @@ const DashboardPage: React.FC = () => {
 											<td className="px-4 py-4 align-top text-gray-700 max-w-xs break-words">
 												{share.type === 'file'
 													? share.fileType || 'File'
-													: (share.content?.slice(0, 80) || '') +
-													  (share.content?.length > 80 ? '...' : '')}
+													: (share.content?.replace(/<[^>]*>/g, '').slice(0, 80) || '') +
+													  (share.content?.replace(/<[^>]*>/g, '').length > 80 ? '...' : '')}
 											</td>
 											<td className="px-4 py-4 align-top font-mono text-base text-primary-700">
 												{share.accessCode ||
@@ -258,8 +297,8 @@ const DashboardPage: React.FC = () => {
 										<span className="font-semibold">Content: </span>
 										{share.type === 'file'
 											? share.fileType || 'File'
-											: (share.content?.slice(0, 80) || '') +
-											  (share.content?.length > 80 ? '...' : '')}
+											: (share.content?.replace(/<[^>]*>/g, '').slice(0, 80) || '') +
+											  (share.content?.replace(/<[^>]*>/g, '').length > 80 ? '...' : '')}
 									</div>
 									<div className="text-xs text-gray-500">
 										<span className="font-semibold">Sharing Code: </span>
@@ -334,7 +373,10 @@ const DashboardPage: React.FC = () => {
 			{/* Add/Edit Modal */}
 			{showAddModal && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-					<div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-2 sm:mx-0 p-4 sm:p-8 max-h-[70vh] overflow-y-auto">
+					<div 
+						ref={modalRef}
+						className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-2 sm:mx-0 p-4 sm:p-8 max-h-[70vh] overflow-y-auto"
+					>
 						<div className="mb-4 flex justify-between items-center">
 							<h3 className="text-lg font-semibold">
 								{editShare
@@ -361,6 +403,7 @@ const DashboardPage: React.FC = () => {
 										onSuccess={() => {
 											setEditShare(null);
 											setAddType(null);
+											setShowAddModal(false);
 										}}
 										showNeverExpireOption={true}
 										showTitleField={true}
@@ -375,6 +418,7 @@ const DashboardPage: React.FC = () => {
 										onSuccess={() => {
 											setEditShare(null);
 											setAddType(null);
+											setShowAddModal(false);
 										}}
 										showNeverExpireOption={true}
 										prefillData={{
@@ -409,7 +453,8 @@ const DashboardPage: React.FC = () => {
 										<div className="font-semibold mb-2">Share a File</div>
 										<ShareFileForm
 											onSuccess={() => {
-												// Do not close modal automatically
+												setShowAddModal(false);
+												setAddType(null);
 											}}
 											showNeverExpireOption={true}
 											showTitleField={true}
@@ -427,7 +472,8 @@ const DashboardPage: React.FC = () => {
 										<div className="font-semibold mb-2">Share a Text</div>
 										<ShareTextForm
 											onSuccess={() => {
-												// Do not close modal automatically
+												setShowAddModal(false);
+												setAddType(null);
 											}}
 											showNeverExpireOption={true}
 										/>
@@ -448,7 +494,10 @@ const DashboardPage: React.FC = () => {
 			{/* Details Modal */}
 			{detailShare && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-					<div className="bg-white rounded-lg shadow-lg w-full max-w-lg mx-2 sm:mx-0 p-6 max-h-[80vh] overflow-y-auto">
+					<div 
+						ref={detailModalRef}
+						className="bg-white rounded-lg shadow-lg w-full max-w-lg mx-2 sm:mx-0 p-6 max-h-[80vh] overflow-y-auto"
+					>
 						<div className="flex justify-between items-center mb-4">
 							<h3 className="text-lg font-semibold">
 								{detailShare.title ? detailShare.title : detailShare.name}
@@ -471,9 +520,16 @@ const DashboardPage: React.FC = () => {
 							</div>
 							<div>
 								<span className="font-semibold">Content: </span>
-								<span className="break-words">{detailShare.type === 'file'
-									? detailShare.fileType || 'File'
-									: detailShare.content}</span>
+								<span className="break-words">
+									{detailShare.type === 'file'
+										? detailShare.fileType || 'File'
+										: (
+											<div 
+												className="prose max-w-none mt-2"
+												dangerouslySetInnerHTML={{ __html: detailShare.content }}
+											/>
+										)}
+								</span>
 							</div>
 							<div>
 								<span className="font-semibold">Sharing Code: </span>
