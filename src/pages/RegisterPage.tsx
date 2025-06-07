@@ -54,7 +54,7 @@ const RegisterPage: React.FC = () => {
         Create account
       </h2>
       <p className="text-gray-500 mb-5 text-center text-sm">
-        Start sharing securely with Fynk
+        Start sharing securely with Flink
       </p>
       {error && (
         <div className="mb-3 bg-red-50 border-l-4 border-red-400 p-3 rounded">

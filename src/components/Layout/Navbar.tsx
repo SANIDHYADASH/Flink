@@ -22,7 +22,7 @@ const Navbar: React.FC = () => {
           <div className="flex">
             <Link to="/" className="flex-shrink-0 flex items-center">
               <Lock className="h-6 w-6 text-primary-600" />
-              <span className="ml-2 text-lg font-bold text-gray-900">Fynk</span>
+              <span className="ml-2 text-lg font-bold text-gray-900">Flink</span>
             </Link>
           </div>
 

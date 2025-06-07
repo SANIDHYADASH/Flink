@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center mb-4 md:mb-0">
             <Lock className="h-6 w-6 text-primary-600" />
-            <span className="ml-2 text-lg font-bold text-gray-900">Fynk</span>
+            <span className="ml-2 text-lg font-bold text-gray-900">Flink</span>
           </div>
           <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8 items-center">
             <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">
@@ -26,7 +26,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
         <div className="mt-8 pt-6 border-t border-gray-100 text-center text-sm text-gray-500">
-          &copy; {currentYear} Fynk. All rights reserved.
+          &copy; {currentYear} Flink. All rights reserved.
         </div>
       </div>
     </footer>

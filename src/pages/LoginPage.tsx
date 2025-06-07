@@ -39,7 +39,7 @@ const LoginPage: React.FC = () => {
   return (
     <div className="bg-white rounded-xl shadow-md px-5 py-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-1 text-center">Sign in</h2>
-      <p className="text-gray-500 mb-5 text-center text-sm">Access your Fynk account</p>
+      <p className="text-gray-500 mb-5 text-center text-sm">Access your Flink account</p>
       {error && (
         <div className="mb-3 bg-red-50 border-l-4 border-red-400 p-3 rounded">
           <p className="text-xs text-red-700">{error}</p>

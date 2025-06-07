@@ -12,7 +12,7 @@ const AuthLayout: React.FC = () => {
           <Lock className="h-12 w-12 mb-3" />
           <h2 className="text-2xl font-extrabold mb-1">Welcome Back!</h2>
           <p className="text-sm opacity-90 mb-4 text-center">
-            Securely share files and text with Fynk.
+            Securely share files and text with Flink.
           </p>
           {/* Inline SVG illustration */}
           <svg className="w-auto max-w-[11rem] h-24 text-gray-800 dark:text-white" aria-hidden="true" width="610" height="524" viewBox="0 0 610 524" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,7 +30,7 @@ const AuthLayout: React.FC = () => {
           <div className="flex flex-col items-center mb-4">
             <Link to="/" className="flex items-center gap-2">
               <Lock className="h-8 w-8 text-primary-600" />
-              <span className="text-lg font-bold text-primary-700 tracking-tight">Fynk</span>
+              <span className="text-lg font-bold text-primary-700 tracking-tight">Flink</span>
             </Link>
           </div>
           <div className="w-full max-w-sm mx-auto">
