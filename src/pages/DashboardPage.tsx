@@ -1,253 +1,517 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { FileText, Upload, Lock, Check, User, Archive } from 'lucide-react';
+import { FileText, Upload, Edit2 } from 'lucide-react';
 import { useShare } from '../contexts/ShareContext';
 import { useAuth } from '../contexts/AuthContext';
-import ShareTextForm from '../components/Dashboard/ShareTextForm';
 import ShareFileForm from '../components/Dashboard/ShareFileForm';
-import ShareItemCard from '../components/Dashboard/ShareItemCard';
+import ShareTextForm from '../components/Dashboard/ShareTextForm';
+
+const statusStyles: Record<string, string> = {
+	REQUEST: 'border border-orange-300 text-orange-500 bg-white',
+	ACTIVE: 'border border-green-300 text-green-600 bg-white',
+	REFUSED: 'border border-red-300 text-red-500 bg-white',
+};
 
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
-  const { userShares, isExpired } = useShare();
-  const [activeTab, setActiveTab] = useState<'files' | 'text' | 'upload-file' | 'upload-text'>('files');
-  const [showExpired, setShowExpired] = useState(false);
+	const { user } = useAuth();
+	const { userShares, deleteShare } = useShare();
+	const [tab, setTab] = useState<'files' | 'texts'>('files');
+	const [search, setSearch] = useState('');
+	const [showAddModal, setShowAddModal] = useState(false);
+	const [editShare, setEditShare] = useState<any>(null);
+	const [addType, setAddType] = useState<'file' | 'text' | null>(null);
+	const [detailShare, setDetailShare] = useState<any>(null);
 
-  // Sort shares by creation date (newest first)
-  const sortedShares = [...userShares].sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+	// Filtered shares based on tab and search
+	const filteredShares = userShares
+		.filter((share) => (tab === 'files' ? share.type === 'file' : share.type === 'text'))
+		.filter((share) =>
+			search.trim()
+				? (share.title?.toLowerCase().includes(search.toLowerCase()) ||
+					share.name?.toLowerCase().includes(search.toLowerCase()) ||
+					(share.type === 'text' && share.content?.toLowerCase().includes(search.toLowerCase())))
+				: true
+		);
 
-  // Filter shares by type
-  const fileShares = sortedShares.filter(share => share.type === 'file' && !isExpired(share));
-  const textShares = sortedShares.filter(share => share.type === 'text' && !isExpired(share));
-  const expiredShares = sortedShares.filter(share => isExpired(share));
+	// Handle delete
+	const handleDelete = (id: string) => {
+		if (window.confirm('Are you sure you want to delete this share?')) {
+			deleteShare(id);
+		}
+	};
 
-  // Stats
-  const stats = [
-    {
-      label: 'Total Shares',
-      value: sortedShares.length,
-      icon: <User className="h-7 w-7 text-primary-600" />,
-      bg: 'bg-primary-50',
-    },
-    {
-      label: 'Active Shares',
-      value: sortedShares.length - expiredShares.length,
-      icon: <Check className="h-7 w-7 text-green-600" />,
-      bg: 'bg-green-50',
-    },
-    {
-      label: 'File Shares',
-      value: fileShares.length,
-      icon: <Upload className="h-7 w-7 text-accent-600" />,
-      bg: 'bg-accent-50',
-    },
-    {
-      label: 'Text Shares',
-      value: textShares.length,
-      icon: <FileText className="h-7 w-7 text-secondary-600" />,
-      bg: 'bg-secondary-50',
-    },
-  ];
+	const formatDate = (date?: string) => {
+		if (!date) return '';
+		const d = new Date(date);
+		return isNaN(d.getTime()) ? '' : d.toLocaleDateString();
+	};
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-blue-100 flex flex-col items-center py-0">
-      {/* Header */}
-      <div className="w-full max-w-7xl mx-auto px-4">
-        <div className="rounded-b-3xl bg-gradient-to-r from-primary-100 to-blue-100 shadow-md flex flex-col items-center py-10 mb-10">
-          <div className="flex items-center gap-4 mb-2">
-            <Lock className="h-10 w-10 text-primary-600" />
-            <h1 className="text-4xl font-extrabold text-primary-700 tracking-tight">Dashboard</h1>
-          </div>
-          <p className="text-lg text-gray-600">
-            Welcome back, <span className="font-semibold">{user?.name}</span>
-          </p>
-          {/* <div className="flex gap-4 mt-6">
-            <button
-              onClick={() => setActiveTab('upload-file')}
-              className="inline-flex items-center px-5 py-2.5 rounded-lg bg-primary-600 text-white font-semibold shadow hover:bg-primary-700 transition text-base"
-            >
-              <Upload className="mr-2 h-5 w-5" />
-              Upload File
-            </button>
-            <button
-              onClick={() => setActiveTab('upload-text')}
-              className="inline-flex items-center px-5 py-2.5 rounded-lg bg-secondary-600 text-white font-semibold shadow hover:bg-secondary-700 transition text-base"
-            >
-              <FileText className="mr-2 h-5 w-5" />
-              Share Text
-            </button>
-          </div> */}
-        </div>
-      </div>
+	// Expiry label logic
+	const getExpiryLabel = (share: any) => {
+		// Prefer expiresAt if present, else expiry
+		const expiryValue = share.expiresAt || share.expiry;
+		if (expiryValue === 'never' || !expiryValue) {
+			return <span className="text-green-600 font-semibold">Never</span>;
+		}
+		const expiryDate = new Date(expiryValue);
+		if (!isNaN(expiryDate.getTime())) {
+			return formatDate(expiryValue);
+		}
+		return <span className="text-green-600 font-semibold">Never</span>;
+	};
 
-      {/* Main Content Card */}
-      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          {stats.map((stat, idx) => (
-            <motion.div
-              key={stat.label}
-              className={`rounded-2xl shadow-lg bg-white hover:shadow-xl transition flex items-center gap-5 px-8 py-8 ${stat.bg} border border-gray-100`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: idx * 0.07 }}
-            >
-              <div className="flex-shrink-0">{stat.icon}</div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900">{stat.value}</div>
-                <div className="text-base text-gray-500">{stat.label}</div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+	return (
+		<div className="min-h-screen bg-[#f8fafd] flex flex-col">
+			{/* Top bar */}
+			<header className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-8 py-4 sm:py-6 bg-white shadow-sm gap-4 sm:gap-0">
+				<div className="w-full sm:w-auto text-left font-semibold text-gray-700 text-base">
+					Hi, <span className="text-primary-600">{user?.name || 'User'}</span>
+				</div>
+				<div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto justify-end">
+					<input
+						type="text"
+						placeholder="Search files or texts..."
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						className="rounded-lg border border-gray-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 w-full sm:w-64"
+					/>
+					<button
+						className="bg-green-500 hover:bg-green-600 text-white px-4 sm:px-5 py-2 rounded-lg font-semibold text-sm shadow transition w-auto"
+						onClick={() => { setShowAddModal(true); setEditShare(null); setAddType(null); }}
+					>
+						+ ADD NEW
+					</button>
+				</div>
+			</header>
 
-        {/* Tab Navigation */}
-        <div className="mb-10 flex flex-wrap gap-3 justify-center">
-          <button
-            onClick={() => setActiveTab('files')}
-            className={`px-6 py-2 rounded-full font-semibold text-base transition shadow-sm ${
-              activeTab === 'files'
-                ? 'bg-primary-600 text-white shadow'
-                : 'bg-white text-gray-700 hover:bg-primary-50 border border-primary-100'
-            }`}
-          >
-            Your Files
-          </button>
-          <button
-            onClick={() => setActiveTab('text')}
-            className={`px-6 py-2 rounded-full font-semibold text-base transition shadow-sm ${
-              activeTab === 'text'
-                ? 'bg-secondary-600 text-white shadow'
-                : 'bg-white text-gray-700 hover:bg-secondary-50 border border-secondary-100'
-            }`}
-          >
-            Your Texts
-          </button>
-          <button
-            onClick={() => setActiveTab('upload-file')}
-            className={`px-6 py-2 rounded-full font-semibold text-base transition shadow-sm ${
-              activeTab === 'upload-file'
-                ? 'bg-primary-600 text-white shadow'
-                : 'bg-white text-gray-700 hover:bg-primary-50 border border-primary-100'
-            }`}
-          >
-            Upload File
-          </button>
-          <button
-            onClick={() => setActiveTab('upload-text')}
-            className={`px-6 py-2 rounded-full font-semibold text-base transition shadow-sm ${
-              activeTab === 'upload-text'
-                ? 'bg-secondary-600 text-white shadow'
-                : 'bg-white text-gray-700 hover:bg-secondary-50 border border-secondary-100'
-            }`}
-          >
-            Share Text
-          </button>
-        </div>
+			{/* Main section */}
+			<main className="flex-1 px-2 sm:px-4 md:px-12 py-6 sm:py-10 bg-[#f8fafd]">
+				<h2 className="text-xl sm:text-2xl font-semibold mb-6 sm:mb-8 mt-2">
+					{tab === 'files' ? 'Shared Files' : 'Shared Texts'}
+				</h2>
+				{/* Tabs */}
+				<div className="flex gap-4 sm:gap-8 border-b border-gray-200 mb-4 sm:mb-6 overflow-x-auto">
+					<button
+						className={`pb-2 text-base font-medium border-b-2 transition whitespace-nowrap ${
+							tab === 'files'
+								? 'border-blue-600 text-blue-600'
+								: 'border-transparent text-gray-500 hover:text-blue-600'
+						}`}
+						onClick={() => setTab('files')}
+					>
+						Files
+					</button>
+					<button
+						className={`pb-2 text-base font-medium border-b-2 transition whitespace-nowrap ${
+							tab === 'texts'
+								? 'border-blue-600 text-blue-600'
+								: 'border-transparent text-gray-500 hover:text-blue-600'
+						}`}
+						onClick={() => setTab('texts')}
+					>
+						Texts
+					</button>
+				</div>
+				{/* Table or Cards */}
+				<div className="w-full">
+					{/* Desktop Table */}
+					<div className="hidden sm:block bg-white rounded-xl shadow p-0 overflow-x-auto">
+						<table className="min-w-full divide-y divide-gray-200 text-sm">
+							<thead>
+								<tr className="text-gray-700 font-semibold bg-gray-50">
+									<th className="px-4 py-3 text-left">Type</th>
+									<th className="px-4 py-3 text-left">Title</th>
+									<th className="px-4 py-3 text-left">Content</th>
+									<th className="px-4 py-3 text-left">Sharing Code</th>
+									<th className="px-4 py-3 text-left">Created</th>
+									<th className="px-4 py-3 text-left">Expiry</th>
+									<th className="px-4 py-3 text-left">Status</th>
+									<th className="px-4 py-3"></th>
+								</tr>
+							</thead>
+							<tbody className="bg-white divide-y divide-gray-100">
+								{filteredShares.length === 0 ? (
+									<tr>
+										<td colSpan={8} className="text-center py-10 text-gray-400">
+											No {tab === 'files' ? 'files' : 'texts'} found.
+										</td>
+									</tr>
+								) : (
+									filteredShares.map((share, idx) => (
+										<tr
+											key={share.id || idx}
+											className="hover:bg-blue-50 transition cursor-pointer"
+											onClick={e => {
+												// Prevent row click if edit/delete button is clicked
+												if ((e.target as HTMLElement).closest('button')) return;
+												setDetailShare(share);
+											}}
+										>
+											<td className="px-4 py-4 align-top">
+												<div className="flex items-center gap-2">
+													{share.type === 'file' ? (
+														<Upload className="h-5 w-5 text-blue-500" />
+													) : (
+														<FileText className="h-5 w-5 text-gray-500" />
+													)}
+													<span className="capitalize text-xs text-gray-500">{share.type}</span>
+												</div>
+											</td>
+											<td className="px-4 py-4 align-top font-semibold text-gray-900">
+												{share.title ? share.title : share.name}
+											</td>
+											<td className="px-4 py-4 align-top text-gray-700 max-w-xs break-words">
+												{share.type === 'file'
+													? share.fileType || 'File'
+													: (share.content?.slice(0, 80) || '') +
+													  (share.content?.length > 80 ? '...' : '')}
+											</td>
+											<td className="px-4 py-4 align-top font-mono text-base text-primary-700">
+												{share.accessCode ||
+													(share.code && /^\d{6}$/.test(share.code)
+														? share.code
+														: '')}
+											</td>
+											<td className="px-4 py-4 align-top text-gray-700">
+												{formatDate(share.createdAt)}
+											</td>
+											<td className="px-4 py-4 align-top text-gray-700">
+												{getExpiryLabel(share)}
+											</td>
+											<td className="px-4 py-4 align-top">
+												<span
+													className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border border-green-300 text-green-600 bg-white`}
+													style={{
+														borderWidth: 1.5,
+														minWidth: 70,
+														textAlign: 'center',
+														background: '#fff',
+													}}
+												>
+													ACTIVE
+												</span>
+											</td>
+											<td className="px-4 py-4 align-top flex gap-2">
+												<button
+													className="text-gray-400 hover:text-blue-600"
+													onClick={e => {
+														e.stopPropagation();
+														setEditShare(share);
+														setShowAddModal(true);
+														setAddType(share.type === 'file' ? 'file' : 'text');
+													}}
+													title="Edit"
+												>
+													<Edit2 className="w-4 h-4" />
+												</button>
+												<button
+													className="text-gray-400 hover:text-red-500"
+													title="Delete"
+													onClick={e => {
+														e.stopPropagation();
+														handleDelete(share.id);
+													}}
+												>
+													<svg
+														className="w-4 h-4"
+														fill="none"
+														stroke="currentColor"
+														strokeWidth={2}
+														viewBox="0 0 24 24"
+													>
+														<path d="M6 18L18 6M6 6l12 12" />
+													</svg>
+												</button>
+											</td>
+										</tr>
+									))
+								)}
+							</tbody>
+						</table>
+					</div>
+					{/* Mobile Cards */}
+					<div className="sm:hidden flex flex-col gap-4">
+						{filteredShares.length === 0 ? (
+							<div className="text-center py-10 text-gray-400">
+								No {tab === 'files' ? 'files' : 'texts'} found.
+							</div>
+						) : (
+							filteredShares.map((share, idx) => (
+								<div
+									key={share.id || idx}
+									className="bg-white rounded-xl shadow p-4 flex flex-col gap-2 border border-gray-100 cursor-pointer hover:bg-blue-50"
+									onClick={e => {
+										// Prevent card click if edit/delete button is clicked
+										if ((e.target as HTMLElement).closest('button')) return;
+										setDetailShare(share);
+									}}
+								>
+									<div className="flex items-center gap-2 mb-1">
+										{share.type === 'file' ? (
+											<Upload className="h-5 w-5 text-blue-500" />
+										) : (
+											<FileText className="h-5 w-5 text-gray-500" />
+										)}
+										<span className="capitalize text-xs text-gray-500">{share.type}</span>
+										<span className="font-semibold text-gray-900">{share.title ? share.title : share.name}</span>
+									</div>
+									<div className="text-xs text-gray-500">
+										<span className="font-semibold">Content: </span>
+										{share.type === 'file'
+											? share.fileType || 'File'
+											: (share.content?.slice(0, 80) || '') +
+											  (share.content?.length > 80 ? '...' : '')}
+									</div>
+									<div className="text-xs text-gray-500">
+										<span className="font-semibold">Sharing Code: </span>
+										<span className="font-mono text-base text-primary-700">
+											{share.accessCode ||
+												(share.code && /^\d{6}$/.test(share.code)
+													? share.code
+													: '')}
+										</span>
+									</div>
+									<div className="text-xs text-gray-500">
+										<span className="font-semibold">Created: </span>
+										{formatDate(share.createdAt)}
+									</div>
+									<div className="text-xs text-gray-500">
+										<span className="font-semibold">Expiry: </span>
+										{getExpiryLabel(share)}
+									</div>
+									<div className="flex justify-between items-center mt-1">
+										<span
+											className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border border-green-300 text-green-600 bg-white`}
+											style={{
+												borderWidth: 1.5,
+												minWidth: 70,
+												textAlign: 'center',
+												background: '#fff',
+											}}
+										>
+											ACTIVE
+										</span>
+										<div className="flex gap-4">
+											<button
+												className="text-gray-400 hover:text-blue-600"
+												onClick={e => {
+													e.stopPropagation();
+													setEditShare(share);
+													setShowAddModal(true);
+													setAddType(share.type === 'file' ? 'file' : 'text');
+												}}
+												title="Edit"
+											>
+												<Edit2 className="w-4 h-4" />
+											</button>
+											<button
+												className="text-gray-400 hover:text-red-500"
+												title="Delete"
+												onClick={e => {
+													e.stopPropagation();
+													handleDelete(share.id);
+												}}
+											>
+												<svg
+													className="w-4 h-4"
+													fill="none"
+													stroke="currentColor"
+													strokeWidth={2}
+													viewBox="0 0 24 24"
+												>
+													<path d="M6 18L18 6M6 6l12 12" />
+												</svg>
+											</button>
+										</div>
+									</div>
+								</div>
+							))
+						)}
+					</div>
+				</div>
+				{/* Pagination (optional) */}
+			</main>
 
-        {/* Tab Content */}
-        <div>
-          {/* Files Tab */}
-          {activeTab === 'files' && (
-            <>
-              {fileShares.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <Upload className="h-20 w-20 text-primary-200 mb-6" />
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">No files shared yet</h3>
-                  <p className="text-gray-500 mb-6">Get started by uploading a file.</p>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => setActiveTab('upload-file')}
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload a file
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-                  {fileShares.map((share) => (
-                    <ShareItemCard key={share.id} share={share} />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
+			{/* Add/Edit Modal */}
+			{showAddModal && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+					<div className="bg-white rounded-lg shadow-lg w-full max-w-2xl mx-2 sm:mx-0 p-4 sm:p-8 max-h-[70vh] overflow-y-auto">
+						<div className="mb-4 flex justify-between items-center">
+							<h3 className="text-lg font-semibold">
+								{editShare
+									? `Edit ${editShare.type === 'file' ? 'File' : 'Text'}`
+									: 'Share File or Text'}
+							</h3>
+							<button
+								className="text-gray-400 hover:text-gray-600"
+								onClick={() => {
+									setEditShare(null);
+									setShowAddModal(false);
+									setAddType(null);
+								}}
+							>
+								×
+							</button>
+						</div>
+						{/* Modal Content */}
+						{editShare ? (
+							<div className="mt-6">
+								{editShare.type === 'file' ? (
+									<ShareFileForm
+										editShare={editShare}
+										onSuccess={() => {
+											setEditShare(null);
+											setAddType(null);
+										}}
+										showNeverExpireOption={true}
+										showTitleField={true}
+										prefillData={{
+											...editShare,
+											expiry: editShare.expiresAt || editShare.expiry,
+										}}
+									/>
+								) : (
+									<ShareTextForm
+										editShare={editShare}
+										onSuccess={() => {
+											setEditShare(null);
+											setAddType(null);
+										}}
+										showNeverExpireOption={true}
+										prefillData={{
+											...editShare,
+											expiry: editShare.expiresAt || editShare.expiry,
+										}}
+									/>
+								)}
+							</div>
+						) : (
+							<>
+								{/* Step 1: Choose type */}
+								{!addType && (
+									<div className="flex flex-col items-center gap-4">
+										<button
+											className="w-full py-2 rounded bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+											onClick={() => setAddType('file')}
+										>
+											Share File
+										</button>
+										<button
+											className="w-full py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
+											onClick={() => setAddType('text')}
+										>
+											Share Text
+										</button>
+									</div>
+								)}
+								{/* Step 2: Show form based on type */}
+								{addType === 'file' && (
+									<div className="mt-6">
+										<div className="font-semibold mb-2">Share a File</div>
+										<ShareFileForm
+											onSuccess={() => {
+												// Do not close modal automatically
+											}}
+											showNeverExpireOption={true}
+											showTitleField={true}
+										/>
+										<button
+											className="mt-4 text-sm text-gray-400 hover:text-gray-600"
+											onClick={() => setAddType(null)}
+										>
+											Back
+										</button>
+									</div>
+								)}
+								{addType === 'text' && (
+									<div className="mt-6">
+										<div className="font-semibold mb-2">Share a Text</div>
+										<ShareTextForm
+											onSuccess={() => {
+												// Do not close modal automatically
+											}}
+											showNeverExpireOption={true}
+										/>
+										<button
+											className="mt-4 text-sm text-gray-400 hover:text-gray-600"
+											onClick={() => setAddType(null)}
+										>
+											Back
+										</button>
+									</div>
+								)}
+							</>
+						)}
+					</div>
+				</div>
+			)}
 
-          {/* Text Tab */}
-          {activeTab === 'text' && (
-            <>
-              {textShares.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20">
-                  <FileText className="h-20 w-20 text-secondary-200 mb-6" />
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">No texts shared yet</h3>
-                  <p className="text-gray-500 mb-6">Get started by sharing a text.</p>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setActiveTab('upload-text')}
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Share a text
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-                  {textShares.map((share) => (
-                    <ShareItemCard key={share.id} share={share} />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Upload File Tab */}
-          {activeTab === 'upload-file' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ShareFileForm onSuccess={() => setActiveTab('files')} />
-            </motion.div>
-          )}
-
-          {/* Share Text Tab */}
-          {activeTab === 'upload-text' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ShareTextForm onSuccess={() => setActiveTab('text')} />
-            </motion.div>
-          )}
-
-          {/* Expired Shares Section */}
-          {expiredShares.length > 0 && (
-            <div className="mt-14">
-              <button
-                className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-base mb-4"
-                onClick={() => setShowExpired((v) => !v)}
-              >
-                <Archive className="h-5 w-5" />
-                {showExpired ? 'Hide' : 'Show'} Expired Shares ({expiredShares.length})
-              </button>
-              {showExpired && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-                  {expiredShares.map((share) => (
-                    <ShareItemCard key={share.id} share={share} expired />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+			{/* Details Modal */}
+			{detailShare && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+					<div className="bg-white rounded-lg shadow-lg w-full max-w-lg mx-2 sm:mx-0 p-6 max-h-[80vh] overflow-y-auto">
+						<div className="flex justify-between items-center mb-4">
+							<h3 className="text-lg font-semibold">
+								{detailShare.title ? detailShare.title : detailShare.name}
+							</h3>
+							<button
+								className="text-gray-400 hover:text-gray-600"
+								onClick={() => setDetailShare(null)}
+							>
+								×
+							</button>
+						</div>
+						<div className="space-y-3">
+							<div className="flex items-center gap-2">
+								{detailShare.type === 'file' ? (
+									<Upload className="h-5 w-5 text-blue-500" />
+								) : (
+									<FileText className="h-5 w-5 text-gray-500" />
+								)}
+								<span className="capitalize text-xs text-gray-500">{detailShare.type}</span>
+							</div>
+							<div>
+								<span className="font-semibold">Content: </span>
+								<span className="break-words">{detailShare.type === 'file'
+									? detailShare.fileType || 'File'
+									: detailShare.content}</span>
+							</div>
+							<div>
+								<span className="font-semibold">Sharing Code: </span>
+								<span className="font-mono text-base text-primary-700">
+									{detailShare.accessCode ||
+										(detailShare.code && /^\d{6}$/.test(detailShare.code)
+											? detailShare.code
+											: '')}
+								</span>
+							</div>
+							<div>
+								<span className="font-semibold">Created: </span>
+								{formatDate(detailShare.createdAt)}
+							</div>
+							<div>
+								<span className="font-semibold">Expiry: </span>
+								{getExpiryLabel(detailShare)}
+							</div>
+							<div>
+								<span className="font-semibold">Status: </span>
+								<span
+									className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border border-green-300 text-green-600 bg-white`}
+									style={{
+										borderWidth: 1.5,
+										minWidth: 70,
+										textAlign: 'center',
+										background: '#fff',
+									}}
+								>
+									ACTIVE
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
 };
 
 export default DashboardPage;
