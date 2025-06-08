@@ -1,7 +1,7 @@
 # Flink - Secure File & Text Sharing Platform
 
 <div align="center">
-  <img src="https://images.pexels.com/photos/5483071/pexels-photo-5483071.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&dpr=2" alt="Flink Banner" width="600" height="200" style="border-radius: 10px;">
+  <!-- <img src="https://images.pexels.com/photos/5483071/pexels-photo-5483071.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&dpr=2" alt="Flink Banner" width="600" height="200" style="border-radius: 10px;"> -->
   
   **The NextGen File and Text Sharing Platform**
   
@@ -191,7 +191,7 @@ interface ShareItem {
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/flink.git
+   git clone https://github.com/SANIDHYADASH/flink.git
    cd flink
    ```
 
@@ -643,16 +643,12 @@ SOFTWARE.
 ## 📞 Support
 
 ### Getting Help
-- 📧 **Email**: support@flink.app
-- 💬 **Discord**: [Join our community](https://discord.gg/flink)
-- 📖 **Documentation**: [docs.flink.app](https://docs.flink.app)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/yourusername/flink/issues)
+- 📧 **Email**: sanidhyadash32@gmail.com
+- 📖 **Documentation**: [share.sanidhya.in/docs](https://share.sanidhya.in/docs)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/SANIDHYADASH/flink/issues)
 
 ### Community
 - 🌟 **Star the repo** if you find it useful
-- 🐦 **Follow us on Twitter** [@FlinkApp](https://twitter.com/FlinkApp)
-- 📱 **Join our Discord** for real-time support
-- 📧 **Subscribe to our newsletter** for updates
 
 ---
 
@@ -674,12 +670,11 @@ SOFTWARE.
 ---
 
 <div align="center">
-  <h3>Made with ❤️ by the Flink Team</h3>
+  <h3>Made with ❤️ by Sanidhya</h3>
   <p>
-    <a href="https://flink.app">Website</a> •
-    <a href="https://docs.flink.app">Documentation</a> •
-    <a href="https://github.com/yourusername/flink">GitHub</a> •
-    <a href="https://twitter.com/FlinkApp">Twitter</a>
+    <a href="https://share.sanidhya.in">Website</a> •
+    <a href="https://#">Documentation</a> •
+    <a href="https://github.com/SANIDHYADASH/flink">GitHub</a> •
   </p>
   
   **⭐ Star us on GitHub if you find Flink useful!**
