@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": "dist",
+    "rewrites": [
+      {
+        "source": "/**",
+        "destination": "/index.html"
+      }
+    ],
+    "ignore": [
+      "supabase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
