@@ -3,12 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, AlertCircle, Lock, Download, Eye, FileText, File } from 'lucide-react';
 import { useShare, ShareItem } from '../contexts/ShareContext';
-import fileDownload from 'js-file-download';
+import { supabase } from '../lib/supabase';
+import CryptoJS from 'crypto-js';
 
 const AccessPage: React.FC = () => {
   const { code } = useParams<{ code?: string }>();
   const navigate = useNavigate();
-  const { getShareByCode, verifySharePassword, incrementDownload } = useShare();
+  const { getShareByCode, incrementDownload } = useShare();
   
   const [accessCode, setAccessCode] = useState(code || '');
   const [password, setPassword] = useState('');
@@ -25,7 +26,7 @@ const AccessPage: React.FC = () => {
   }, [code]);
 
   // Handle search for share
-  const handleSearchShare = () => {
+  const handleSearchShare = async () => {
     if (!accessCode || accessCode.length !== 6) {
       setError('Please enter a valid 6-digit code');
       return;
@@ -35,7 +36,7 @@ const AccessPage: React.FC = () => {
     setError('');
     
     try {
-      const foundShare = getShareByCode(accessCode);
+      const foundShare = await getShareByCode(accessCode);
       
       if (!foundShare) {
         setError('Invalid code or content has expired');
@@ -75,7 +76,7 @@ const AccessPage: React.FC = () => {
   };
 
   // Handle password submission
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!share) return;
@@ -85,48 +86,48 @@ const AccessPage: React.FC = () => {
       return;
     }
     
-    const isValid = verifySharePassword(share, password);
-    
-    if (isValid) {
-      setIsAuthenticated(true);
-      setError('');
-    } else {
-      setError('Incorrect password');
+    try {
+      // Get the share from database to verify password hash
+      const { data, error } = await supabase
+        .from('shares')
+        .select('password_hash')
+        .eq('access_code', share.accessCode)
+        .single();
+
+      if (error || !data) {
+        setError('Failed to verify password');
+        return;
+      }
+
+      const hashedInput = CryptoJS.SHA256(password).toString();
+      const isValid = data.password_hash === hashedInput;
+      
+      if (isValid) {
+        setIsAuthenticated(true);
+        setError('');
+      } else {
+        setError('Incorrect password');
+      }
+    } catch (error) {
+      console.error('Password verification error:', error);
+      setError('Failed to verify password');
     }
   };
 
   // Handle download file
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!share || share.type !== 'file') return;
     
     try {
-      // Parse the base64 data
-      const dataPrefix = 'data:';
-      const commaIndex = share.content.indexOf(',');
+      // For files stored in Supabase Storage, the content is the public URL
+      const link = document.createElement('a');
+      link.href = share.content;
+      link.download = share.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
-      if (commaIndex !== -1) {
-        const contentType = share.content.substring(dataPrefix.length, commaIndex);
-        const base64Data = share.content.substring(commaIndex + 1);
-        
-        // Convert base64 to blob and download
-        const byteCharacters = atob(base64Data);
-        const byteArrays = [];
-        
-        for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-          const slice = byteCharacters.slice(offset, offset + 512);
-          const byteNumbers = new Array(slice.length);
-          
-          for (let i = 0; i < slice.length; i++) {
-            byteNumbers[i] = slice.charCodeAt(i);
-          }
-          
-          const byteArray = new Uint8Array(byteNumbers);
-          byteArrays.push(byteArray);
-        }
-        
-        fileDownload(share.content, share.name);
-        incrementDownload(share.id);
-      }
+      await incrementDownload(share.id);
     } catch (err) {
       console.error('Download error:', err);
       setError('Failed to download the file');

@@ -69,7 +69,8 @@ const HomePage: React.FC = () => {
                   <span className="block text-primary-600">Sharing Made Simple</span>
                 </h1>
                 <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-                  <p><b>The NextGen File and Text Sharing Platform.</b></p><br></br>Share files and text securely with 6-digit access codes. Add password protection and set expiration dates for complete control over your shared content.
+                  <strong>The NextGen File and Text Sharing Platform.</strong><br/><br></br>
+                  Share files and text securely with 6-digit access codes. Add password protection and set expiration dates for complete control over your shared content.
                 </p>
                 <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
                   <Link

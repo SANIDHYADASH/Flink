@@ -9,7 +9,7 @@ const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,12 +33,12 @@ const RegisterPage: React.FC = () => {
     try {
       setError('');
       setLoading(true);
-      const success = await register(name, email, password);
+      const { error: signUpError } = await signUp(email, password, name);
 
-      if (success) {
-        navigate('/dashboard');
+      if (signUpError) {
+        setError(signUpError.message);
       } else {
-        setError('Email already in use');
+        navigate('/dashboard');
       }
     } catch (err) {
       setError('Failed to create an account');

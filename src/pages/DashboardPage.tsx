@@ -5,15 +5,9 @@ import { useAuth } from '../contexts/AuthContext';
 import ShareFileForm from '../components/Dashboard/ShareFileForm';
 import ShareTextForm from '../components/Dashboard/ShareTextForm';
 
-const statusStyles: Record<string, string> = {
-	REQUEST: 'border border-orange-300 text-orange-500 bg-white',
-	ACTIVE: 'border border-green-300 text-green-600 bg-white',
-	REFUSED: 'border border-red-300 text-red-500 bg-white',
-};
-
 const DashboardPage: React.FC = () => {
 	const { user } = useAuth();
-	const { userShares, deleteShare } = useShare();
+	const { userShares, deleteShare, refreshShares } = useShare();
 	const [tab, setTab] = useState<'files' | 'texts'>('files');
 	const [search, setSearch] = useState('');
 	const [showAddModal, setShowAddModal] = useState(false);
@@ -23,6 +17,11 @@ const DashboardPage: React.FC = () => {
 	
 	const modalRef = useRef<HTMLDivElement>(null);
 	const detailModalRef = useRef<HTMLDivElement>(null);
+
+	// Refresh shares on mount
+	useEffect(() => {
+		refreshShares();
+	}, []);
 
 	// Handle click outside modal to close
 	useEffect(() => {
@@ -72,9 +71,14 @@ const DashboardPage: React.FC = () => {
 		);
 
 	// Handle delete
-	const handleDelete = (id: string) => {
+	const handleDelete = async (id: string) => {
 		if (window.confirm('Are you sure you want to delete this share?')) {
-			deleteShare(id);
+			try {
+				await deleteShare(id);
+			} catch (error) {
+				console.error('Failed to delete share:', error);
+				alert('Failed to delete share. Please try again.');
+			}
 		}
 	};
 
@@ -98,12 +102,22 @@ const DashboardPage: React.FC = () => {
 		return <span className="text-green-600 font-semibold">Never</span>;
 	};
 
+	const getUserName = () => {
+		if (user?.user_metadata?.name) {
+			return user.user_metadata.name;
+		}
+		if (user?.email) {
+			return user.email.split('@')[0];
+		}
+		return 'User';
+	};
+
 	return (
 		<div className="min-h-screen bg-[#f8fafd] flex flex-col">
 			{/* Top bar */}
 			<header className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-8 py-4 sm:py-6 bg-white shadow-sm gap-4 sm:gap-0">
 				<div className="w-full sm:w-auto text-left font-semibold text-gray-700 text-base">
-					Hi, <span className="text-primary-600">{user?.name || 'User'}</span>
+					Hi, <span className="text-primary-600">{getUserName()}</span>
 				</div>
 				<div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto justify-end">
 					<input
@@ -205,10 +219,7 @@ const DashboardPage: React.FC = () => {
 													  (share.content?.replace(/<[^>]*>/g, '').length > 80 ? '...' : '')}
 											</td>
 											<td className="px-4 py-4 align-top font-mono text-base text-primary-700">
-												{share.accessCode ||
-													(share.code && /^\d{6}$/.test(share.code)
-														? share.code
-														: '')}
+												{share.accessCode}
 											</td>
 											<td className="px-4 py-4 align-top text-gray-700">
 												{formatDate(share.createdAt)}
@@ -303,10 +314,7 @@ const DashboardPage: React.FC = () => {
 									<div className="text-xs text-gray-500">
 										<span className="font-semibold">Sharing Code: </span>
 										<span className="font-mono text-base text-primary-700">
-											{share.accessCode ||
-												(share.code && /^\d{6}$/.test(share.code)
-													? share.code
-													: '')}
+											{share.accessCode}
 										</span>
 									</div>
 									<div className="text-xs text-gray-500">
@@ -367,7 +375,6 @@ const DashboardPage: React.FC = () => {
 						)}
 					</div>
 				</div>
-				{/* Pagination (optional) */}
 			</main>
 
 			{/* Add/Edit Modal */}
@@ -404,6 +411,7 @@ const DashboardPage: React.FC = () => {
 											setEditShare(null);
 											setAddType(null);
 											setShowAddModal(false);
+											refreshShares();
 										}}
 										showNeverExpireOption={true}
 										showTitleField={true}
@@ -419,6 +427,7 @@ const DashboardPage: React.FC = () => {
 											setEditShare(null);
 											setAddType(null);
 											setShowAddModal(false);
+											refreshShares();
 										}}
 										showNeverExpireOption={true}
 										prefillData={{
@@ -455,6 +464,7 @@ const DashboardPage: React.FC = () => {
 											onSuccess={() => {
 												setShowAddModal(false);
 												setAddType(null);
+												refreshShares();
 											}}
 											showNeverExpireOption={true}
 											showTitleField={true}
@@ -474,6 +484,7 @@ const DashboardPage: React.FC = () => {
 											onSuccess={() => {
 												setShowAddModal(false);
 												setAddType(null);
+												refreshShares();
 											}}
 											showNeverExpireOption={true}
 										/>
@@ -534,10 +545,7 @@ const DashboardPage: React.FC = () => {
 							<div>
 								<span className="font-semibold">Sharing Code: </span>
 								<span className="font-mono text-base text-primary-700">
-									{detailShare.accessCode ||
-										(detailShare.code && /^\d{6}$/.test(detailShare.code)
-											? detailShare.code
-											: '')}
+									{detailShare.accessCode}
 								</span>
 							</div>
 							<div>

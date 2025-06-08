@@ -5,14 +5,24 @@ import { motion } from 'framer-motion';
 import { Lock, Menu, X, User, LogOut, FileText, Upload } from 'lucide-react';
 
 const Navbar: React.FC = () => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, signOut } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate('/');
     setIsMenuOpen(false);
+  };
+
+  const getUserName = () => {
+    if (user?.user_metadata?.name) {
+      return user.user_metadata.name;
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'User';
   };
 
   return (
@@ -40,6 +50,9 @@ const Navbar: React.FC = () => {
                 <Link to="/dashboard" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:bg-gray-100">
                   Dashboard
                 </Link>
+                <span className="text-sm text-gray-600">
+                  Hi, {getUserName()}
+                </span>
                 <button
                   className="btn btn-primary"
                   onClick={handleLogout}
@@ -105,6 +118,9 @@ const Navbar: React.FC = () => {
                 >
                   Dashboard
                 </Link>
+                <div className="px-3 py-2 text-sm text-gray-600">
+                  Hi, {getUserName()}
+                </div>
                 <button
                   className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-error-600 hover:bg-gray-100"
                   onClick={handleLogout}
@@ -137,4 +153,4 @@ const Navbar: React.FC = () => {
   );
 };
 
-export default Navbar
+export default Navbar;

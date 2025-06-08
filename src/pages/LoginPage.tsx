@@ -7,7 +7,7 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,12 +21,12 @@ const LoginPage: React.FC = () => {
     try {
       setError('');
       setLoading(true);
-      const success = await login(email, password);
+      const { error: signInError } = await signIn(email, password);
 
-      if (success) {
-        navigate('/dashboard');
+      if (signInError) {
+        setError(signInError.message);
       } else {
-        setError('Invalid email or password');
+        navigate('/dashboard');
       }
     } catch (err) {
       setError('Failed to log in');
