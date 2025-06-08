@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, AlertCircle } from 'lucide-react';
+import { FileText, AlertCircle, ExternalLink } from 'lucide-react';
 import { useShare } from '../../contexts/ShareContext';
 import RichTextEditor from './RichTextEditor';
 
@@ -55,6 +55,29 @@ const ShareTextForm: React.FC<ShareTextFormProps> = ({
       }
     }
   }, [editShare, prefillData]);
+
+  // Handle opening full page editor
+  const handleOpenFullPage = () => {
+    const currentData = {
+      name,
+      content: text,
+      hasPassword: usePassword,
+      password,
+      expiresInDays,
+      ...(editShare && { id: editShare.id })
+    };
+    
+    const params = new URLSearchParams();
+    if (editShare) {
+      params.set('edit', editShare.id);
+      params.set('data', encodeURIComponent(JSON.stringify({ ...editShare, ...currentData })));
+    } else {
+      params.set('data', encodeURIComponent(JSON.stringify(currentData)));
+    }
+    
+    const url = `/share-text?${params.toString()}`;
+    window.open(url, '_blank');
+  };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -122,9 +145,19 @@ const ShareTextForm: React.FC<ShareTextFormProps> = ({
       transition={{ duration: 0.3 }}
     >
       <div className="px-4 py-5 sm:p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">
-          {editShare ? 'Edit Text Share' : 'Share Text'}
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-medium text-gray-900">
+            {editShare ? 'Edit Text Share' : 'Share Text'}
+          </h2>
+          <button
+            type="button"
+            onClick={handleOpenFullPage}
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
+            <ExternalLink className="h-3 w-3 mr-1" />
+            Open in Full Page
+          </button>
+        </div>
         
         {error && (
           <div className="mb-4 bg-error-50 text-error-700 p-3 rounded-md flex items-start">
@@ -159,9 +192,9 @@ const ShareTextForm: React.FC<ShareTextFormProps> = ({
         )}
         
         {!successShare && (
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Text Name */}
-            <div className="mb-4">
+            <div>
               <label htmlFor="name" className="label">
                 Name
               </label>
@@ -177,19 +210,21 @@ const ShareTextForm: React.FC<ShareTextFormProps> = ({
             </div>
             
             {/* Rich Text Content */}
-            <div className="mb-4">
-              <label className="label">
+            <div>
+              <label className="label mb-2">
                 Content
               </label>
-              <RichTextEditor
-                value={text}
-                onChange={setText}
-                placeholder="Enter the text you want to share with rich formatting..."
-              />
+              <div className="mb-12">
+                <RichTextEditor
+                  value={text}
+                  onChange={setText}
+                  placeholder="Enter the text you want to share with rich formatting..."
+                />
+              </div>
             </div>
             
             {/* Expiration */}
-            <div className="mb-4">
+            <div>
               <label htmlFor="expiresInDays" className="label">
                 Expires After
               </label>
@@ -209,7 +244,7 @@ const ShareTextForm: React.FC<ShareTextFormProps> = ({
             </div>
             
             {/* Password Protection */}
-            <div className="mb-6">
+            <div>
               <div className="flex items-center mb-2">
                 <input
                   id="usePassword"
@@ -237,7 +272,7 @@ const ShareTextForm: React.FC<ShareTextFormProps> = ({
             </div>
             
             {/* Submit Button */}
-            <div>
+            <div className="pt-4">
               <button
                 type="submit"
                 className="btn btn-primary w-full"

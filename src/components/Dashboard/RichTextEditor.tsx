@@ -61,30 +61,34 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         formats={formats}
         placeholder={placeholder}
         style={{
-          height: '200px',
-          marginBottom: '50px'
+          height: className.includes('min-h-[400px]') ? '400px' : '200px',
+          marginBottom: className.includes('min-h-[400px]') ? '60px' : '50px'
         }}
       />
       <style jsx global>{`
         .rich-text-editor .ql-editor {
-          min-height: 150px;
+          min-height: ${className.includes('min-h-[400px]') ? '350px' : '150px'} !important;
           font-family: inherit;
         }
         .rich-text-editor .ql-toolbar {
-          border-top: 1px solid #ccc;
-          border-left: 1px solid #ccc;
-          border-right: 1px solid #ccc;
+          border-top: 1px solid #d1d5db;
+          border-left: 1px solid #d1d5db;
+          border-right: 1px solid #d1d5db;
           border-radius: 8px 8px 0 0;
+          background: #f9fafb;
         }
         .rich-text-editor .ql-container {
-          border-bottom: 1px solid #ccc;
-          border-left: 1px solid #ccc;
-          border-right: 1px solid #ccc;
+          border-bottom: 1px solid #d1d5db;
+          border-left: 1px solid #d1d5db;
+          border-right: 1px solid #d1d5db;
           border-radius: 0 0 8px 8px;
         }
         .rich-text-editor .ql-editor.ql-blank::before {
           font-style: normal;
           color: #9ca3af;
+        }
+        .rich-text-editor .ql-snow .ql-tooltip {
+          z-index: 1000;
         }
       `}</style>
     </div>

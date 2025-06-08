@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import AccessPage from './pages/AccessPage';
+import ShareTextPage from './pages/ShareTextPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Guards
@@ -37,6 +38,7 @@ function App() {
         {/* Protected routes */}
         <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="share-text" element={<ShareTextPage />} />
         </Route>
 
         {/* 404 */}
