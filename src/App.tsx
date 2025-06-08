@@ -13,6 +13,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import AccessPage from './pages/AccessPage';
 import ShareTextPage from './pages/ShareTextPage';
+import DocsPage from './pages/DocsPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Guards
@@ -25,6 +26,7 @@ function App() {
         {/* Public routes */}
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
+          <Route path="docs" element={<DocsPage />} />
           <Route path="access/:code" element={<AccessPage />} />
           <Route path="access" element={<AccessPage />} />
         </Route>

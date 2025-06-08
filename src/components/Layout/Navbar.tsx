@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
-import { Lock, Menu, X, User, LogOut, FileText, Upload } from 'lucide-react';
+import { Lock, Menu, X, User, LogOut, FileText, Upload, BookOpen } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, user, signOut } = useAuth();
@@ -40,6 +40,10 @@ const Navbar: React.FC = () => {
           <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
             <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:bg-gray-100">
               Home
+            </Link>
+            <Link to="/docs" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:bg-gray-100 flex items-center">
+              <BookOpen className="h-4 w-4 mr-1" />
+              Docs
             </Link>
             <Link to="/access" className="px-3 py-2 rounded-md text-sm font-medium text-gray-900 hover:bg-gray-100">
               Access Content
@@ -100,6 +104,14 @@ const Navbar: React.FC = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               Home
+            </Link>
+            <Link 
+              to="/docs" 
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-100 flex items-center"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <BookOpen className="h-4 w-4 mr-2" />
+              Docs
             </Link>
             <Link 
               to="/access" 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Lock } from 'lucide-react';
+import { Lock, BookOpen } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -16,6 +16,10 @@ const Footer: React.FC = () => {
           <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8 items-center">
             <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">
               Home
+            </Link>
+            <Link to="/docs" className="text-sm text-gray-500 hover:text-gray-700 flex items-center">
+              <BookOpen className="h-3 w-3 mr-1" />
+              Documentation
             </Link>
             <Link to="/access" className="text-sm text-gray-500 hover:text-gray-700">
               Access Content
