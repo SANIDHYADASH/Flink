@@ -1,9 +1,5 @@
-# Flink - Secure File & Text Sharing Platform
-
-<div align="center">
-  <!-- <img src="https://images.pexels.com/photos/5483071/pexels-photo-5483071.jpeg?auto=compress&cs=tinysrgb&w=400&h=200&dpr=2" alt="Flink Banner" width="600" height="200" style="border-radius: 10px;"> -->
+# Flink - The NextGen File and Text Sharing Platform
   
-  **The NextGen File and Text Sharing Platform**
   
   [![React](https://img.shields.io/badge/React-18.3.1-blue.svg)](https://reactjs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.5.3-blue.svg)](https://www.typescriptlang.org/)
