@@ -135,201 +135,233 @@ const AccessPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-center text-gray-900 mb-8">
-        Access Shared Content
-      </h1>
-      
-      {/* Search Form */}
-      {!share && (
-        <motion.div
-          className="bg-white shadow rounded-lg overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="px-4 py-5 sm:p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Enter 6-digit access code
-            </h2>
-            
-            {error && (
-              <div className="mb-4 bg-error-50 text-error-700 p-3 rounded-md flex items-start">
-                <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                <span>{error}</span>
-              </div>
-            )}
-            
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                className="input code-input flex-grow"
-                placeholder="000000"
-                maxLength={6}
-                value={accessCode}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/[^0-9]/g, '');
-                  setAccessCode(value);
-                }}
-                onKeyPress={handleAccessCodeKeyPress}
-                autoFocus
-              />
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleSearchShare}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Searching...' : 'Access'}
-                {!isLoading && <Search className="ml-2 h-4 w-4" />}
-              </button>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Press Enter to search for the access code
-            </p>
-          </div>
-        </motion.div>
-      )}
-      
-      {/* Password Form */}
-      {share && !isAuthenticated && (
-        <motion.div
-          className="bg-white shadow rounded-lg overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center mb-4">
-              <Lock className="h-5 w-5 text-primary-600 mr-2" />
-              <h2 className="text-lg font-medium text-gray-900">
-                Password Protected Content
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-100">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+          <h1 className="text-3xl font-bold text-center text-gray-900">
+            Access Shared Content
+          </h1>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search Form */}
+        {!share && (
+          <motion.div
+            className="bg-white shadow rounded-lg overflow-hidden max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="px-6 py-8">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">
+                Enter 6-digit access code
               </h2>
-            </div>
-            
-            <p className="text-gray-500 mb-4">
-              This content is protected with a password. Please enter the password to access it.
-            </p>
-            
-            {error && (
-              <div className="mb-4 bg-error-50 text-error-700 p-3 rounded-md flex items-start">
-                <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                <span>{error}</span>
-              </div>
-            )}
-            
-            <form onSubmit={handlePasswordSubmit}>
-              <div className="mb-4">
-                <label htmlFor="password" className="label">
-                  Password
-                </label>
+              
+              {error && (
+                <div className="mb-4 bg-error-50 text-error-700 p-3 rounded-md flex items-start">
+                  <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
+              
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input
-                  id="password"
-                  type="password"
-                  className="input"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  onKeyPress={handlePasswordKeyPress}
-                  placeholder="Enter password"
+                  type="text"
+                  className="input code-input flex-grow"
+                  placeholder="000000"
+                  maxLength={6}
+                  value={accessCode}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    setAccessCode(value);
+                  }}
+                  onKeyPress={handleAccessCodeKeyPress}
                   autoFocus
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Press Enter to unlock content
-                </p>
-              </div>
-              
-              <div className="flex justify-between">
                 <button
                   type="button"
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    setShare(null);
-                    setAccessCode('');
-                    navigate('/access');
-                  }}
-                >
-                  Go Back
-                </button>
-                <button
-                  type="submit"
                   className="btn btn-primary"
+                  onClick={handleSearchShare}
+                  disabled={isLoading}
                 >
-                  Unlock Content
-                  <Lock className="ml-2 h-4 w-4" />
+                  {isLoading ? 'Searching...' : 'Access'}
+                  {!isLoading && <Search className="ml-2 h-4 w-4" />}
                 </button>
               </div>
-            </form>
-          </div>
-        </motion.div>
-      )}
-      
-      {/* Content Display */}
-      {share && isAuthenticated && (
-        <motion.div
-          className="bg-white shadow rounded-lg overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                {share.type === 'text' ? (
-                  <FileText className="h-6 w-6 text-primary-600 mr-2" />
-                ) : (
-                  <File className="h-6 w-6 text-primary-600 mr-2" />
-                )}
+              <p className="text-xs text-gray-500 mt-2">
+                Press Enter to search for the access code
+              </p>
+            </div>
+          </motion.div>
+        )}
+        
+        {/* Password Form */}
+        {share && !isAuthenticated && (
+          <motion.div
+            className="bg-white shadow rounded-lg overflow-hidden max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="px-6 py-8">
+              <div className="flex items-center mb-4">
+                <Lock className="h-5 w-5 text-primary-600 mr-2" />
                 <h2 className="text-lg font-medium text-gray-900">
-                  {share.title || share.name}
+                  Password Protected Content
                 </h2>
               </div>
               
-              <button
-                type="button"
-                className="text-gray-400 hover:text-gray-500"
-                onClick={() => {
-                  setShare(null);
-                  setAccessCode('');
-                  setIsAuthenticated(false);
-                  navigate('/access');
-                }}
-              >
-                New Access
-              </button>
+              <p className="text-gray-500 mb-4">
+                This content is protected with a password. Please enter the password to access it.
+              </p>
+              
+              {error && (
+                <div className="mb-4 bg-error-50 text-error-700 p-3 rounded-md flex items-start">
+                  <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
+              
+              <form onSubmit={handlePasswordSubmit}>
+                <div className="mb-4">
+                  <label htmlFor="password" className="label">
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    className="input"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyPress={handlePasswordKeyPress}
+                    placeholder="Enter password"
+                    autoFocus
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Press Enter to unlock content
+                  </p>
+                </div>
+                
+                <div className="flex justify-between">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setShare(null);
+                      setAccessCode('');
+                      navigate('/access');
+                    }}
+                  >
+                    Go Back
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                  >
+                    Unlock Content
+                    <Lock className="ml-2 h-4 w-4" />
+                  </button>
+                </div>
+              </form>
             </div>
-            
-            {share.type === 'text' ? (
-              <div className="bg-gray-50 p-4 rounded-md mb-4">
-                <div 
-                  className="prose max-w-none"
-                  dangerouslySetInnerHTML={{ __html: share.content }}
-                />
+          </motion.div>
+        )}
+        
+        {/* Content Display - Full Width */}
+        {share && isAuthenticated && (
+          <motion.div
+            className="bg-white shadow rounded-lg overflow-hidden w-full"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  {share.type === 'text' ? (
+                    <FileText className="h-6 w-6 text-primary-600 mr-3" />
+                  ) : (
+                    <File className="h-6 w-6 text-primary-600 mr-3" />
+                  )}
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      {share.title || share.name}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {share.type === 'file' ? 'File' : 'Text'} • Access Code: {share.accessCode}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  {share.type === 'file' && (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handleDownload}
+                    >
+                      Download
+                      <Download className="ml-2 h-4 w-4" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => {
+                      setShare(null);
+                      setAccessCode('');
+                      setIsAuthenticated(false);
+                      navigate('/access');
+                    }}
+                  >
+                    New Access
+                  </button>
+                </div>
               </div>
-            ) : (
-              <div className="bg-gray-50 p-4 rounded-md mb-4 text-center">
-                <File className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-900 font-medium">{share.title || share.name}</p>
-                <p className="text-gray-500 text-sm">
-                  {share.fileType || 'File'} • {formatFileSize(share.size || 0)}
-                </p>
-              </div>
-            )}
-            
-            <div className="flex justify-end">
-              {share.type === 'file' && (
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleDownload}
-                >
-                  Download
-                  <Download className="ml-2 h-4 w-4" />
-                </button>
+            </div>
+
+            {/* Content */}
+            <div className="w-full">
+              {share.type === 'text' ? (
+                <div className="p-6 w-full">
+                  <div 
+                    className="prose prose-lg max-w-none w-full"
+                    dangerouslySetInnerHTML={{ __html: share.content }}
+                    style={{
+                      width: '100%',
+                      maxWidth: 'none'
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="p-6 w-full">
+                  <div className="bg-gray-50 p-8 rounded-lg text-center">
+                    <File className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {share.title || share.name}
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      {share.fileType || 'File'} • {formatFileSize(share.size || 0)}
+                    </p>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-lg"
+                      onClick={handleDownload}
+                    >
+                      Download File
+                      <Download className="ml-2 h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };
